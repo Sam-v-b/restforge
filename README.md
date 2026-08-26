@@ -40,9 +40,9 @@ flowchart TB
     Client --> FastAPI
 
     subgraph FastAPI["FastAPI Application"]
-        R1[/api/templates]
-        R2[/api/payloads]
-        R3[/api/test-runs]
+        R1["POST /api/templates"]
+        R2["POST /api/payloads"]
+        R3["POST /api/test-runs"]
     end
 
     subgraph Services
@@ -243,28 +243,28 @@ POST /api/templates/
 flowchart TD
     Schema[JSON Schema] --> Dispatch{Schema type?}
 
-    Dispatch -->|object| Obj[Iterate properties\ngenerate each field]
-    Dispatch -->|array| Arr[Generate N items\nfrom items schema]
+    Dispatch -->|object| Obj[Iterate properties]
+    Dispatch -->|array| Arr[Generate N items from items schema]
     Dispatch -->|string| Str{Format hint?}
     Dispatch -->|integer| Int[Apply min/max bounds]
     Dispatch -->|number| Num[Apply min/max bounds]
     Dispatch -->|boolean| Bool[Return value]
     Dispatch -->|enum| Enum[Pick from values]
-    Dispatch -->|anyOf / oneOf| Compose[Pick one sub-schema]
+    Dispatch -->|anyOf or oneOf| Compose[Pick one sub-schema]
     Dispatch -->|allOf| Merge[Merge all sub-schemas]
-    Dispatch -->|$ref| Ref[Resolve from $defs]
+    Dispatch -->|dollar ref| Ref[Resolve from defs]
 
-    Str -->|email| Email[user@example.com]
-    Str -->|uuid| UUID[random UUID]
-    Str -->|date| Date[today ISO]
-    Str -->|date-time| DT[now UTC ISO]
-    Str -->|uri| URI[https://example.com/resource]
-    Str -->|none| Plain[sample_NNNN / random chars / min-length]
+    Str -->|email| EmailNode["user@example.com"]
+    Str -->|uuid| UUIDNode[random UUID]
+    Str -->|date| DateNode[today ISO]
+    Str -->|date-time| DTNode[now UTC ISO]
+    Str -->|uri| URINode[https://example.com]
+    Str -->|none| Plain[sample_NNNN or random chars]
 
     subgraph Modes
-        M1[sample → sensible defaults]
-        M2[edge_case → boundary values]
-        M3[random + seed → reproducible random]
+        M1[sample - sensible defaults]
+        M2[edge_case - boundary values]
+        M3[random plus seed - reproducible]
     end
 
     Int & Num & Arr & Obj --> Modes
@@ -342,10 +342,10 @@ sequenceDiagram
     Client->>API: { template_id, payload_override?, ... }
     API->>DB: fetch template
     DB-->>API: template (schema, assertions, headers...)
-    API->>PG: generate payload (if no override)
+    API->>PG: generate payload if no override
     PG-->>API: payload
     API->>TR: run_test(url, method, headers, payload, assertions)
-    TR->>Live: HTTP request (httpx async)
+    TR->>Live: HTTP request via httpx async
     Live-->>TR: response (status, body, headers, duration)
     TR->>TR: evaluate each assertion
     TR-->>API: TestRunResult
@@ -375,20 +375,20 @@ flowchart LR
     AE --> A4{response_time_ms}
     AE --> A5{schema_valid}
 
-    A1 -->|status == expected| P1[✓ pass]
-    A1 -->|mismatch| F1[✗ fail]
+    A1 -->|status == expected| P1[pass]
+    A1 -->|mismatch| F1[fail]
 
-    A2 -->|dot-path exists| P2[✓ pass]
-    A2 -->|not found| F2[✗ fail]
+    A2 -->|dot-path exists| P2[pass]
+    A2 -->|not found| F2[fail]
 
-    A3 -->|value == expected| P3[✓ pass]
-    A3 -->|mismatch or missing| F3[✗ fail]
+    A3 -->|value == expected| P3[pass]
+    A3 -->|mismatch or missing| F3[fail]
 
-    A4 -->|duration_ms ≤ max| P4[✓ pass]
-    A4 -->|exceeded| F4[✗ fail]
+    A4 -->|duration_ms le max| P4[pass]
+    A4 -->|exceeded| F4[fail]
 
-    A5 -->|validates against schema| P5[✓ pass]
-    A5 -->|schema errors| F5[✗ fail]
+    A5 -->|validates against schema| P5[pass]
+    A5 -->|schema errors| F5[fail]
 
     P1 & P2 & P3 & P4 & P5 --> Overall{All passed?}
     F1 & F2 & F3 & F4 & F5 --> Overall
